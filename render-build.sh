@@ -13,6 +13,3 @@ pip3 install -r ./scripts/requirements.txt
 
 # Install Node.js dependencies
 npm install
-
-# Run the Node.js application
-node dist/index.js
