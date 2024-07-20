@@ -41,6 +41,7 @@ router.post('/upload', upload.single('file'), async (req: Request, res: Response
         console.log("Absolute path: ", script_absolutePath);
 
         const command = `python ${script_absolutePath} ${inputFilePath} ${outputfile_absolutePath}`;
+        // const command = "";
         console.log(command);
 
         // Execute the command

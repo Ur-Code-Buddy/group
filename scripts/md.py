@@ -145,62 +145,6 @@ def create_neighbours(division):
             neighbours.append(new_neighbour)
     return neighbours
 
-# def main():
-#     # path = input("Enter file name: ")
-#     path = sys.argv[1]
-#     information = InputProcessor(str(path))
-
-#     num_competitive_runners = sum([no_of_teams for no_of_teams in information.num_teams]) * 4
-
-#     final_divisions = []
-#     print("starting optimization")
-
-#     for j in range(len(information.num_teams)):
-#         initial_division = current_division = generate_initial_division(information, j)
-#         num_iteration = 1000
-#         initial_temperature = current_temperature = 50
-#         cooling_rate = 0.99
-#         start_time = time.time()
-#         for i in range(num_iteration):
-#             current_temperature *= cooling_rate
-
-#             neighbours = create_neighbours(current_division)
-#             fitness_scores = [fitness(neighbour, information, j) for neighbour in neighbours]
-#             chosen_division = neighbours[fitness_scores.index(max(fitness_scores))]
-#             chosen_fitness = fitness(chosen_division, information, j)
-#             current_fitness = fitness(current_division, information, j)
-
-#             if chosen_fitness >= current_fitness:
-#                 current_division = chosen_division
-#             else:
-#                 probability = 1 / (1 - math.exp((chosen_fitness - current_fitness) / current_temperature))
-#                 if random.random() < probability:
-#                     current_division = chosen_division
-
-#         current_division = get_optimum_division(current_division, information, j)
-#         final_divisions.append(current_division)
-#         print("Time taken for division " + str(j) + " is " + str(time.time() - start_time))
-
-#     wb = openpyxl.Workbook()
-#     sheet = wb.active
-#     # answer = input("Enter output filename: ")
-#     answer = sys.argv[2]
-
-#     races = ["Back", "Breast", "B-fly", "Crawl"]
-#     for index, division in enumerate(final_divisions):
-#         sheet.cell(row=index * 6 + 1, column=1).value = "Division " + str(index + 1)
-#         for k in range(5):
-#             if k < 4:
-#                 sheet.cell(row = index * 6 + k + 2, column = 1).value = races[k]
-#             for l in range(information.num_teams[index]):
-#                 if k < 4:
-#                     sheet.cell(row=index * 6 + k + 2, column=l * 3 + 3).value = division[l * 4 + k][0]
-#                     sheet.cell(row=index * 6 + k + 2, column=l * 3 + 4).value = division[l * 4 + k][k + 1]
-#                 else:
-#                     sheet.cell(row=index * 6 + k + 2, column=l * 3 + 4).value = get_timings(division, information, index)[l]
-#     wb.save(answer)
-#     print(" file generated")
-
 def main():
     # Get input and output file paths from command line arguments
     path = sys.argv[1]
