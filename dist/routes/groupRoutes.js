@@ -16,7 +16,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const fs_1 = __importDefault(require("fs"));
 const express_1 = __importDefault(require("express"));
 const upload_1 = __importDefault(require("../middlewares/upload")); //multer for file upload
-const xlsx_1 = __importDefault(require("xlsx"));
+const path = require('path');
+const { exec } = require('child_process');
 const router = express_1.default.Router();
 router.get("/", (req, res) => {
     res.send("This is the base group route.");
@@ -33,19 +34,46 @@ function deleteFile(filePath) {
     });
 }
 router.post('/upload', upload_1.default.single('file'), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log("Upload hit 2");
+    var _a, _b;
+    console.log("Working on file...");
     try {
         if (!req.file) {
             return res.status(400).send({ message: 'No file uploaded' });
         }
-        const workbook = xlsx_1.default.readFile(req.file.path);
-        const sheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[sheetName];
-        const data = xlsx_1.default.utils.sheet_to_json(worksheet);
-        // Do something with the data
-        console.log(data);
-        yield deleteFile(req.file.path);
-        res.status(200).send({ message: 'File uploaded and processed successfully', data });
+        const outputFile = req.body.name;
+        const inputFilePath = req.file.path;
+        // const filepath = path.join(__dirname, `../../output/${inputFilePath}`);
+        console.log(`File path: ${__dirname}`);
+        // console.log(`File path 123: ${inputFilePath} and output file name: ${outputFile}`);
+        const script_relativePath = '../../scripts/md.py';
+        const outputfile_relativePth = `../../output/${outputFile}`;
+        // Resolve the absolute path
+        const script_absolutePath = path.resolve(__dirname, script_relativePath);
+        const outputfile_absolutePath = path.resolve(__dirname, outputfile_relativePth);
+        console.log("Absolute path: ", script_absolutePath);
+        const command = `python ${script_absolutePath} ${inputFilePath} ${outputfile_absolutePath}`;
+        console.log(command);
+        // Execute the command
+        console.log(" starting execution...");
+        const child = exec(command);
+        (_a = child.stdout) === null || _a === void 0 ? void 0 : _a.on('data', (data) => {
+            console.log(`stdout: ${data}`);
+        });
+        (_b = child.stderr) === null || _b === void 0 ? void 0 : _b.on('data', (data) => {
+            console.error(`stderr: ${data}`);
+        });
+        child.on('close', (code) => {
+            if (code === 0) {
+                console.log('Python script executed successfully');
+                res.status(200).send({ message: 'File uploaded and processed successfully' });
+            }
+            else {
+                console.error(`Python script exited with code ${code}`);
+                res.status(500).send({ message: 'Error processing file with Python script' });
+            }
+            // Delete the file after processing
+            deleteFile(inputFilePath);
+        });
     }
     catch (error) {
         console.error('Error uploading or processing file:', error);

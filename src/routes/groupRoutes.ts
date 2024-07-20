@@ -6,7 +6,10 @@ import fs from 'fs';
 import express, { Request, Response } from 'express';
 import upload from '../middlewares/upload'; //multer for file upload
 import xlsx from 'xlsx';
+const path = require('path');
 import { any } from 'zod';
+
+const { exec } = require('child_process');
 const router = express.Router();
 
 router.get("/", (req, res) => {
@@ -23,37 +26,62 @@ async function deleteFile(filePath: string) {
     }
 }
 
-router.post('/upload', upload.single('file'), async (req: Request, res: Response) => {
-    console.log("Upload hit 2");
+router.post('/upload', upload.single('file'), async (req: Request, res: Response) => { 
+    console.log("Working on file...");
     try {
         if (!req.file) {
             return res.status(400).send({ message: 'No file uploaded' });
         }
 
-        //req.file.path is the filepath where the file is stored
+        const outputFile : string = req.body.name;
 
-        const workbook = xlsx.readFile(req.file.path);
-        const sheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[sheetName];
-        const data = xlsx.utils.sheet_to_json(worksheet);
+        const inputFilePath = req.file.path;
+        // const filepath = path.join(__dirname, `../../output/${inputFilePath}`);
+        console.log(`File path: ${__dirname}`);
 
-        // Do something with the data
-        console.log(data);
+        // console.log(`File path 123: ${inputFilePath} and output file name: ${outputFile}`);
+        const script_relativePath = '../../scripts/md.py';
+        const outputfile_relativePth = `../../output/${outputFile}`
 
+// Resolve the absolute path
+        const script_absolutePath = path.resolve(__dirname, script_relativePath);
+        const outputfile_absolutePath = path.resolve(__dirname, outputfile_relativePth);
 
-        //delete the file after processing
-        await deleteFile(req.file.path);
+        console.log("Absolute path: ", script_absolutePath);
 
-        res.status(200).send({ message: 'File uploaded and processed successfully', data });
+        const command = `python ${script_absolutePath} ${inputFilePath} ${outputfile_absolutePath}`;
+        console.log(command);
+
+        // Execute the command
+        console.log(" starting execution...");
+        const child = exec(command);
+
+        child.stdout?.on('data', (data : any) => {
+            console.log(`stdout: ${data}`);
+        });
+
+        child.stderr?.on('data', (data : any) => {
+            console.error(`stderr: ${data}`);
+        });
+
+        child.on('close', (code : any) => {
+            if (code === 0) {
+                console.log('Python script executed successfully');
+                res.status(200).send({ message: 'File uploaded and processed successfully' });
+            } else {
+                console.error(`Python script exited with code ${code}`);
+                res.status(500).send({ message: 'Error processing file with Python script' });
+            }
+
+            // Delete the file after processing
+            deleteFile(inputFilePath);
+        });
+
     } catch (error) {
         console.error('Error uploading or processing file:', error);
         res.status(500).send({ message: 'Error uploading or processing file', error });
     }
 });
-
-
-
-
 
 
 
