@@ -14,4 +14,4 @@ pip3 install -r ./scripts/requirements.txt
 # Install Node.js dependencies
 npm install
 
-npm build
+npm run build
