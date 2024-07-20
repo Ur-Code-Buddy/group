@@ -8,6 +8,7 @@ const express_1 = __importDefault(require("express"));
 const groupRoutes_1 = __importDefault(require("./routes/groupRoutes"));
 const body_parser_1 = __importDefault(require("body-parser"));
 const cors_1 = __importDefault(require("cors"));
+const path_1 = __importDefault(require("path"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 app.use((0, cors_1.default)()); // CORS for all routes
@@ -17,6 +18,7 @@ app.use(body_parser_1.default.json());
 //   useNewUrlParser: true,
 //   useUnifiedTopology: true,
 // });
+app.use('/output', express_1.default.static(path_1.default.join(__dirname, '../output')));
 app.use('/group/api', groupRoutes_1.default);
 app.get('/', (req, res) => {
     res.send('base server is working');

@@ -3,6 +3,7 @@ import express from 'express';
 import groupRoutes from './routes/groupRoutes';
 import bodyParser from 'body-parser';
 import cors from 'cors';
+import path from "path"
 
 dotenv.config(); 
 const app = express();
@@ -15,7 +16,10 @@ app.use(bodyParser.json());
 //   useUnifiedTopology: true,
 // });
 
+app.use('/output', express.static(path.join(__dirname, '../output')));
 app.use('/group/api', groupRoutes);
+
+
 
 app.get('/', (req, res) => {
   res.send('base server is working');

@@ -1,5 +1,4 @@
 "use strict";
-// this is rooturl + /group/api/..
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -15,9 +14,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const fs_1 = __importDefault(require("fs"));
 const express_1 = __importDefault(require("express"));
-const upload_1 = __importDefault(require("../middlewares/upload")); //multer for file upload
-const path = require('path');
-const { exec } = require('child_process');
+const upload_1 = __importDefault(require("../middlewares/upload")); // multer for file upload
+const path_1 = __importDefault(require("path"));
+const child_process_1 = require("child_process");
 const router = express_1.default.Router();
 router.get("/", (req, res) => {
     res.send("This is the base group route.");
@@ -42,20 +41,18 @@ router.post('/upload', upload_1.default.single('file'), (req, res) => __awaiter(
         }
         const outputFile = req.body.name;
         const inputFilePath = req.file.path;
-        // const filepath = path.join(__dirname, `../../output/${inputFilePath}`);
         console.log(`File path: ${__dirname}`);
-        // console.log(`File path 123: ${inputFilePath} and output file name: ${outputFile}`);
         const script_relativePath = '../../scripts/md.py';
         const outputfile_relativePth = `../../output/${outputFile}`;
         // Resolve the absolute path
-        const script_absolutePath = path.resolve(__dirname, script_relativePath);
-        const outputfile_absolutePath = path.resolve(__dirname, outputfile_relativePth);
+        const script_absolutePath = path_1.default.resolve(__dirname, script_relativePath);
+        const outputfile_absolutePath = path_1.default.resolve(__dirname, outputfile_relativePth);
         console.log("Absolute path: ", script_absolutePath);
         const command = `python ${script_absolutePath} ${inputFilePath} ${outputfile_absolutePath}`;
         console.log(command);
         // Execute the command
-        console.log(" starting execution...");
-        const child = exec(command);
+        console.log("Starting execution...");
+        const child = (0, child_process_1.exec)(command);
         (_a = child.stdout) === null || _a === void 0 ? void 0 : _a.on('data', (data) => {
             console.log(`stdout: ${data}`);
         });
@@ -65,13 +62,18 @@ router.post('/upload', upload_1.default.single('file'), (req, res) => __awaiter(
         child.on('close', (code) => {
             if (code === 0) {
                 console.log('Python script executed successfully');
-                res.status(200).send({ message: 'File uploaded and processed successfully' });
+                // Construct the URL to the output file
+                const fileUrl = `${req.protocol}://${req.get('host')}/output/${outputFile}`;
+                res.status(200).send({
+                    message: 'File uploaded and processed successfully',
+                    fileUrl
+                });
             }
             else {
                 console.error(`Python script exited with code ${code}`);
                 res.status(500).send({ message: 'Error processing file with Python script' });
             }
-            // Delete the file after processing
+            // Delete the upload file after processing
             deleteFile(inputFilePath);
         });
     }
@@ -80,7 +82,7 @@ router.post('/upload', upload_1.default.single('file'), (req, res) => __awaiter(
         res.status(500).send({ message: 'Error uploading or processing file', error });
     }
 }));
-//catch all route for 404
+// Catch-all route for 404
 router.all("*", (req, res) => {
     res.status(404).send("Route not found.");
 });
