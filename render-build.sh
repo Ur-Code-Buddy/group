@@ -9,7 +9,7 @@ then
 fi
 
 # Install Python dependencies
-pip3 install -r ./script/requirements.txt
+pip3 install -r /script/requirements.txt
 
 # Install Node.js dependencies
 npm install
