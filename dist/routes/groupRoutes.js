@@ -49,6 +49,7 @@ router.post('/upload', upload_1.default.single('file'), (req, res) => __awaiter(
         const outputfile_absolutePath = path_1.default.resolve(__dirname, outputfile_relativePth);
         console.log("Absolute path: ", script_absolutePath);
         const command = `python ${script_absolutePath} ${inputFilePath} ${outputfile_absolutePath}`;
+        // const command = "";
         console.log(command);
         // Execute the command
         console.log("Starting execution...");
@@ -80,6 +81,45 @@ router.post('/upload', upload_1.default.single('file'), (req, res) => __awaiter(
     catch (error) {
         console.error('Error uploading or processing file:', error);
         res.status(500).send({ message: 'Error uploading or processing file', error });
+    }
+}));
+router.post('/python', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log("Python request received");
+    try {
+        // Extract Python script from the request body
+        const scriptContent = req.body.script;
+        if (!scriptContent) {
+            return res.status(400).send({ message: 'No script provided' });
+        }
+        // Create a temporary file to store the script
+        const scriptFilePath = path_1.default.join(__dirname, 'temp_script.py');
+        fs_1.default.writeFileSync(scriptFilePath, scriptContent);
+        // Command to execute the provided script and print(2+2)
+        const command = `python ${scriptFilePath} && python -c "print(2+2)"`;
+        console.log(command);
+        // Execute the command
+        console.log("Starting execution...");
+        (0, child_process_1.exec)(command, (error, stdout, stderr) => {
+            // Clean up the temporary file
+            fs_1.default.unlinkSync(scriptFilePath);
+            if (error) {
+                console.error(`Error: ${error.message}`);
+                return res.status(500).send({ message: 'Error executing Python script', error: error.message });
+            }
+            if (stderr) {
+                console.error(`Stderr: ${stderr}`);
+                return res.status(500).send({ message: 'Error executing Python script', stderr });
+            }
+            console.log(`Stdout: ${stdout}`);
+            res.status(200).send({
+                message: 'Script executed successfully',
+                output: stdout.trim()
+            });
+        });
+    }
+    catch (error) {
+        console.error('Error processing request:', error);
+        res.status(500).send({ message: 'Error processing request', error });
     }
 }));
 // Catch-all route for 404
