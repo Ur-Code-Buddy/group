@@ -83,7 +83,7 @@ router.post('/upload', upload.single('file'), async (req: Request, res: Response
 });
 
 
-router.post('/python', async (req, res) => {
+router.post('/python', async (req, res) => { //this is for testing purposes
     console.log("Python request received");
     try {
         // Extract Python script from the request body
